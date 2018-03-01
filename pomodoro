@@ -1,0 +1,45 @@
+#!/bin/bash
+timef() {
+ ((m=${1}/60))
+ ((s=${1}%60))
+ printf "%02d:%02d\n" $m $s
+}
+
+MSG_SUMMARY=${2:-"Pomodoro finished"}
+MSG_DETAIL=${3:-"You are done, take a break now!"}
+LENGTH_INPUT_MIN=${1:-25}
+LENGTH=$((LENGTH_INPUT_MIN*60))
+INTERVAL=1 # how often screen is updated
+TIME=0 # how much time already passed
+
+
+
+while [  $TIME -lt $LENGTH ]; do
+   CURRENT_TIME=$(timef TIME)
+   REM_TIME=$((LENGTH-TIME))
+   REST_TIME=$(timef REM_TIME)
+   echo -ne "\033[2K" # clear line
+   echo -ne "\rPomodoro progress: $CURRENT_TIME ["
+
+   PROGRESS=$((((TIME*100)/LENGTH)/2))
+   PRINT=0 # how many # segments were printed
+   # print the ### segment of the progress bar
+   while [ $PRINT -lt $PROGRESS ]; do
+      echo -ne "#"
+      let PRINT=PRINT+1
+   done
+
+   # print the empty segment of the progress bar
+   while [ $PRINT -lt 50 ]; do
+     echo -ne " "
+     let PRINT=PRINT+1
+   done
+
+   echo -ne "] $REST_TIME"
+   let TIME=TIME+INTERVAL
+   sleep $INTERVAL
+done
+
+echo -ne "\033[2K"
+echo -ne "\rPomodoro finished!\n"
+notify-send "$MSG_SUMMARY" "$MSG_DETAIL"
